@@ -4,6 +4,7 @@ from sqlalchemy import Column, String, ForeignKey, Integer, Date, Numeric, Boole
 from sqlalchemy import inspect, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 import math
+import psycopg2
 
 engine = create_engine(
     "postgresql+psycopg2://postgres:122333@localhost:5432/deneme")
