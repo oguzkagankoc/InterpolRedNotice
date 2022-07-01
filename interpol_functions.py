@@ -144,17 +144,21 @@ def insert_language_informations(person_db_id, person):
             person_id=person_db_id, language_spoken=i))
         try:
             engine.connect().execute(stmt)
+            insert_languages_info_to_change_log(person)
+
         except:
             print(
                 f"The personal language informations of the person with the person_id: {person_db_id} could not be insert the database.")
 
 
-def insert_language_information(data, person_db_id):
+def insert_language_information(data, person_db_id, entity_id):
     """This is a function that insert language information to the database."""
     stmt = (insert(Base.metadata.tables[LanguageInformation.__tablename__]).values(
         person_id=person_db_id, language_spoken=data))
     try:
         engine.connect().execute(stmt)
+        insert_language_info_to_change_log(
+            data, entity_id)
     except:
         print(
             f"The personal language information of the person with the person_id: {person_db_id} could not be insert the database.")
@@ -167,17 +171,21 @@ def insert_nationality_informations(person_db_id, person):
             person_id=person_db_id, nationality=i))
         try:
             engine.connect().execute(stmt)
+            insert_nationalities_info_to_change_log(
+                person)
         except:
             print(
                 f"The personal nationality informations of the person with the person_id: {person_db_id} could not be insert the database.")
 
 
-def insert_nationality_information(data, person_db_id):
+def insert_nationality_information(data, person_db_id, entity_id):
     """This is a function that insert nationality informations to the database."""
     stmt = (insert(Base.metadata.tables[NationalityInformation.__tablename__]).values(
         person_id=person_db_id, nationality=data))
     try:
         engine.connect().execute(stmt)
+        insert_nationality_info_to_change_log(
+            data, entity_id)
     except:
         print(
             f"The personal nationality information of the person with the person_id: {person_db_id} could not be insert the database.")
@@ -190,17 +198,21 @@ def insert_arrest_warrants(person_db_id, person):
             person_id=person_db_id, issuing_country=i['issuing_country_id'], charge=i['charge'], charge_translation=i['charge_translation']))
         try:
             engine.connect().execute(stmt)
+            insert_arrest_warrants_info_to_change_log(
+                person)
         except:
             print(
                 f"The personal arrest warrants informations of the person with the person_id: {person_db_id} could not be insert the database.")
 
 
-def insert_arrest_warrant(issuing_country, charge, charge_translation, person_id):
+def insert_arrest_warrant(issuing_country, charge, charge_translation, person_id, entity_id):
     """This is a function that insert arrest warrants information to the database."""
     stmt = (insert(Base.metadata.tables[ArrestWarrantInformation.__tablename__]).values(
         person_id=person_id, issuing_country=issuing_country, charge=charge, charge_translation=charge_translation))
     try:
         engine.connect().execute(stmt)
+        insert_arrest_warrant_info_to_change_log(
+            issuing_country, charge, charge_translation, entity_id)
     except:
         print(
             f"The personal arrest warrants informations of the person with the person_id: {person_id} could not be insert the database.")
@@ -218,12 +230,13 @@ def insert_pictures(person_db_id, person):
             stmt = (insert(Base.metadata.tables[PictureInformation.__tablename__]).values(
                 person_id=person_db_id, unique_picture_id=picture_id, picture_url=picture_url, picture_file_path=picture_file_path, picture_base64=picture_base64))
             engine.connect().execute(stmt)
+            insert_pictures_info_to_change_log(person)
         except:
             print(
                 f"The picture of the person with the Id {person_db_id} could not be insert.")
 
 
-def insert_picture(picture_id, picture_url, person_db_id):
+def insert_picture(picture_id, picture_url, person_db_id, entity_id):
     """This is a function that insert picture information to the database."""
     picture_file_path = create_file_path(picture_id)
     try:
@@ -232,6 +245,8 @@ def insert_picture(picture_id, picture_url, person_db_id):
         stmt = (insert(Base.metadata.tables[PictureInformation.__tablename__]).values(
             person_id=person_db_id, unique_picture_id=picture_id, picture_url=picture_url, picture_file_path=picture_file_path, picture_base64=picture_base64))
         engine.connect().execute(stmt)
+        insert_picture_info_to_change_log(
+            picture_id, entity_id)
     except:
         print(
             f"The picture of the person with the Id {person_db_id} could not be insert.")
@@ -369,45 +384,54 @@ def update_hair(person, person_db):
             f"Hair information of the person with entity_id: {person.entity_id} could not be updated.")
 
 
-def delete_language(data, person_db_id):
+def delete_language(data, person_db_id, entity_id):
     """This is a function that deletes data that is in the database of the person but not in the information we obtain upon request."""
     stmt = (delete(Base.metadata.tables[LanguageInformation.__tablename__]).filter(and_(
         Base.metadata.tables[LanguageInformation.__tablename__].c.language_spoken == data, Base.metadata.tables[LanguageInformation.__tablename__].c.person_id == person_db_id)))
     try:
         engine.connect().execute(stmt)
+        insert_deleted_language_info_change_log(
+            data, entity_id)
     except:
         print(
             f"Language information of the person with entity_id: {person_db_id} could not be deleted.")
 
 
-def delete_nationality(data, person_db_id):
+def delete_nationality(data, person_db_id, entity_id):
     """This is a function that deletes data that is in the database of the person but not in the information we obtain upon request."""
     stmt = (delete(Base.metadata.tables[NationalityInformation.__tablename__]).filter(and_(
         Base.metadata.tables[NationalityInformation.__tablename__].c.nationality == data, Base.metadata.tables[NationalityInformation.__tablename__].c.person_id == person_db_id)))
     try:
         engine.connect().execute(stmt)
+        insert_deleted_nationality_info_change_log(
+            data, entity_id)
+
     except:
         print(
             f"Nationality information of the person with entity_id: {person_db_id} could not be deleted.")
 
 
-def delete_arrest_warrants(issuing_country, charge, person_db_id):
+def delete_arrest_warrants(issuing_country, charge, person_db_id, entity_id):
     """This is a function that deletes data that is in the database of the person but not in the information we obtain upon request."""
     stmt = (delete(Base.metadata.tables[ArrestWarrantInformation.__tablename__]).filter(and_(Base.metadata.tables[ArrestWarrantInformation.__tablename__].c.issuing_country == issuing_country,
             Base.metadata.tables[ArrestWarrantInformation.__tablename__].c.charge == charge, Base.metadata.tables[ArrestWarrantInformation.__tablename__].c.person_id == person_db_id)))
     try:
         engine.connect().execute(stmt)
+        insert_deleted_arrest_warrant_info_change_log(
+            issuing_country, charge, entity_id)
     except:
         print(
             f"Arrest warrants information of the person with entity_id: {person_db_id} could not be deleted.")
 
 
-def delete_picture(unique_picture_id, person_db_id):
+def delete_picture(unique_picture_id, person_db_id, entity_id):
     """This is a function that deletes data that is in the database of the person but not in the information we obtain upon request."""
     stmt = (delete(Base.metadata.tables[PictureInformation.__tablename__]).filter(
         Base.metadata.tables[PictureInformation.__tablename__].c.unique_picture_id == unique_picture_id))
     try:
         engine.connect().execute(stmt)
+        insert_deleted_picture_info_change_log(
+            unique_picture_id, entity_id)
     except:
         print(
             f"Picture information of the person with entity_id: {person_db_id} could not be deleted.")
@@ -702,6 +726,7 @@ def insert_deleted_picture_info_change_log(picture_id, entity_id):
         engine.connect().execute(stmt)
         print(
             f"The person with entity_id {entity_id} deleted the picture: {picture_id}")
+
     except:
         print(
             f"The person with entity_id {entity_id} could not be delete the picture: {picture_id}")
@@ -763,6 +788,7 @@ def set_inactive_person(entity_id):
         Base.metadata.tables[PersonalInformation.__tablename__].c.entity_id == entity_id).values(is_active=False))
     try:
         engine.connect().execute(stmt)
+        insert_inactive_person_change_log_table(i)
     except:
         print(
             f"People with entity_id {entity_id} could not be inactivated.")
