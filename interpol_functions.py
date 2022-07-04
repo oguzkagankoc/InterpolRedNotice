@@ -902,3 +902,11 @@ def check_pictures(person, person_db, person_db_id):
         for c in person_db.person_db_pictures_list():
             delete_picture(
                 c[0], person_db_id, person.entity_id)
+
+
+def set_inactive_people(active_people_list, active_people_db_entities):
+    for i in active_people_db_entities:
+        if not i in active_people_list:
+            set_inactive_person(i)
+            # Veritabanında olup request ile alınan kişiler arasında olmayan kişileri is_active = False yapan kısım.
+            # This is the condition that makes is_active = False for people who are in the database but are not among requested people
