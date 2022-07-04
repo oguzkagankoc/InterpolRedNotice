@@ -161,7 +161,7 @@ total_number_of_people_db = interpol_functions.get_total_person_db_count()
 app = Flask(__name__)
 
 
-@app.route("/page/<int:page_num>")          #
+@app.route("/page/<int:page_num>")          
 def criminals(page_num):
     # The place that shows everyone in the database, starting at this address "http://127.0.0.1:5000/page/1", by paginating them 20 each.
     total_person_per_page = interpol_functions.page_return_db(page_num)
