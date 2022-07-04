@@ -52,104 +52,11 @@ for i in range(1, max_page + 1):
             person_db = CriminalDb(person.entity_id)
         person_db_id = interpol_functions.get_person_db_id_from_entity_id(
             person.entity_id)
-        if person.language:
-            # request ile çekilen kişinin dil bilgisi olduğunda
-            # when the requested person has information of the language
-            if not person_db.language_db():
-                # request ile çekilen kişinin dil bilgisi veritabanında olmadığında
-                # when the requested person's language information is not in the database
-                interpol_functions.insert_language_informations(
-                    person_db_id, person)
-            else:
-                for c in person_db.person_db_language_list():
-                    if not c in person.list_languages():
-                        # kişinin veritabanındaki konuştuğu diller arasında request ile eklenecek diller arasında bulunmadığındaki koşul
-                        # when the person's language information in the database does not have in the requested person's language information
-                        interpol_functions.delete_language(
-                            c, person_db_id, person.entity_id)
-                for d in person.list_languages():
-                    if not d in person_db.person_db_language_list():
-                        # request'ten gelen dil bilgisi veritabanında yoksa:
-                        # when the requested person's language information does not have in the person's language information in the database
-                        interpol_functions.insert_language_information(
-                            d, person_db_id, person.entity_id)
-        elif person_db.language_db():
-            for c in person_db.person_db_language_list():
-                interpol_functions.delete_language(
-                            c, person_db_id, person.entity_id)
-        if person.nationality:
-            # request ile çekilen kişinin uyruk bilgisi olduğunda
-            # when the requested person has information of the nationality
-            if not person_db.nationality_db():
-                # request ile çekilen kişinin uyruk bilgisi veritabanında olmadığında
-                # when the requested person's nationality information is not in the database
-                interpol_functions.insert_nationality_informations(
-                    person_db_id, person)
-            else:
-                for c in person_db.person_db_nationality_list():
-                    if not c in person.list_nationalities():
-                        # kişinin veritabanındaki uyruklar arasında request ile eklenecek uyruklar arasında bulunmadığındaki koşul
-                        # when the person's nationality information in the database does not have in the requested person's nationality information
-                        interpol_functions.delete_nationality(
-                            c, person_db_id, person.entity_id)
-                for d in person.list_nationalities():
-                    if not d in person_db.person_db_nationality_list():
-                        # request'ten gelen uyruk veritabanında yoksa:
-                        # when the requested person's nationality information does not have in the person's nationality information in the database
-                        interpol_functions.insert_nationality_information(
-                            d, person_db_id, person.entity_id)
-        elif person_db.nationality_db():
-            for c in person.list_nationalities():
-                interpol_functions.delete_nationality(
-                            c, person_db_id, person.entity_id)
-        if person.arrest_warrants:
-            # request ile çekilen kişinin yakalama emir bilgisi olduğunda
-            # when the requested person has information of the arrest warrant
-            if not person_db.arrest_warrants_db():
-                # request ile çekilen kişinin yakalama emir bilgisi veritabanında olmadığında
-                # when the requested person's arrest warrant information is not in the database
-                interpol_functions.insert_arrest_warrants(person_db_id, person)
-            else:
-                for c in person_db.person_db_arrest_warrants_list():
-                    if not c in person.list_arrest_warrants():
-                        # kişinin veritabanındaki tutuklama emirleri arasında request ile eklenecek tutuklama emirleri arasında bulunmadığındaki koşul
-                        # when the person's arrest warrant information in the database does not have in the requested person's arrest warrant information
-                        interpol_functions.delete_arrest_warrants(
-                            c[0], c[1], person_db.person_db_id, person.entity_id)
-                for d in person.list_arrest_warrants():
-                    if not d in person_db.person_db_arrest_warrants_list():
-                        # request'ten gelen tutuklama emri veritabanında yoksa
-                        # when the requested person's arrest warrant information does not have in the person's arrest warrant information in the database
-                        interpol_functions.insert_arrest_warrant(
-                            d[0], d[1], d[2], person_db.person_db_id, person.entity_id)
-        elif person_db.arrest_warrants_db():
-            for c in person_db.person_db_arrest_warrants_list():
-                interpol_functions.delete_arrest_warrants(
-                            c[0], c[1], person_db.person_db_id, person.entity_id)
-        if person.pictures:
-            # request ile çekilen kişinin resim bilgisi olduğunda
-            # when the requested person has information of the picture
-            if not person_db.pictures_db():
-                # request ile çekilen kişinin resim bilgisi veritabanında olmadığında
-                # when the requested person's picture information is not in the database
-                interpol_functions.insert_pictures(person_db_id, person)
-            else:
-                for c in person_db.person_db_pictures_list():
-                    if not c in person.list_pictures():
-                        # kişinin veritabanındaki resimler arasında request ile eklenecek resimler arasında bulunmadığındaki koşul
-                        # when the person's picture information in the database does not have in the requested person's picture information
-                        interpol_functions.delete_picture(
-                            c[0], person_db_id, person.entity_id)
-                for d in person.list_pictures():
-                    if not d in person_db.person_db_pictures_list():
-                        # request'ten gelen resim veritabanında yoksa
-                        # when the requested person's picture information does not have in the person's picture information in the database
-                        interpol_functions.insert_picture(
-                            d[0], d[1], person_db_id, person.entity_id)
-        elif person_db.pictures_db():
-            for c in person_db.person_db_pictures_list():
-                interpol_functions.delete_picture(
-                            c[0], person_db_id, person.entity_id)
+        interpol_functions.check_language(person, person_db, person_db_id)
+        interpol_functions.check_nationality(person, person_db, person_db_id)
+        interpol_functions.check_arrest_warrants(
+            person, person_db, person_db_id)
+        interpol_functions.check_pictures(person, person_db, person_db_id)
 active_people_db_entities = interpol_functions.get_active_person_db_entities()
 for i in active_people_db_entities:
     if not i in active_people_list:
@@ -165,7 +72,7 @@ total_number_of_people_db = interpol_functions.get_total_person_db_count()
 app = Flask(__name__)
 
 
-@app.route("/page/<int:page_num>")          
+@app.route("/page/<int:page_num>")
 def criminals(page_num):
     # The place that shows everyone in the database, starting at this address "http://127.0.0.1:5000/page/1", by paginating them 20 each.
     total_person_per_page = interpol_functions.page_return_db(page_num)
