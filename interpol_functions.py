@@ -80,6 +80,8 @@ def get_active_person_db_entities():
     """This is a function that returns the list of active contacts in the database."""
     return [a[0] for a in session.query(PersonalInformation.entity_id).filter_by(is_active=True).all()]
 
+def get_base64_data_from_unique_picture_id(unique_picture_id):
+    return session.query(PictureInformation.picture_base64).filter_by(unique_picture_id=unique_picture_id).first()[0]
 
 def get_inactive_person_db_entities():
     """This is a function that returns the list of active contacts in the database."""
@@ -230,7 +232,7 @@ def insert_pictures(person_db_id, person):
             stmt = (insert(Base.metadata.tables[PictureInformation.__tablename__]).values(
                 person_id=person_db_id, unique_picture_id=picture_id, picture_url=picture_url, picture_file_path=picture_file_path, picture_base64=picture_base64))
             engine.connect().execute(stmt)
-            insert_pictures_info_to_change_log(person)
+            insert_picture_info_to_change_log(picture_id, person.entity_id)
         except:
             print(
                 f"The picture of the person with the Id {person_db_id} could not be insert.")
@@ -426,12 +428,13 @@ def delete_arrest_warrants(issuing_country, charge, person_db_id, entity_id):
 
 def delete_picture(unique_picture_id, person_db_id, entity_id):
     """This is a function that deletes data that is in the database of the person but not in the information we obtain upon request."""
+    bs64 = get_base64_data_from_unique_picture_id(unique_picture_id)
     stmt = (delete(Base.metadata.tables[PictureInformation.__tablename__]).filter(
         Base.metadata.tables[PictureInformation.__tablename__].c.unique_picture_id == unique_picture_id))
     try:
         engine.connect().execute(stmt)
         insert_deleted_picture_info_change_log(
-            unique_picture_id, entity_id)
+            unique_picture_id, entity_id, bs64)
     except:
         print(
             f"Picture information of the person with entity_id: {person_db_id} could not be deleted.")
@@ -545,21 +548,6 @@ def insert_arrest_warrants_info_to_change_log(person):
         except:
             print(
                 f"The new arrest warrant(issuing_country: {issuing_country}, charge: {charge}, charge_translation: {charge_translation}) of the person with entity_id {person.entity_id} could not be added to the log table.")
-
-
-def insert_pictures_info_to_change_log(person):
-    """This is a function that adds this change to the log table when a new pictures are inserted."""
-    for i in person.pictures:
-        picture_id = i['picture_id']
-        stmt = (insert(Base.metadata.tables[ChangeLogInformation.__tablename__]).values(person_id=get_person_db_id_from_entity_id(
-            person.entity_id), modification_in_database=f'The person with entity_id {person.entity_id} added new picture. picture_id: {picture_id}', modification_date=datetime.datetime.now()))
-        try:
-            engine.connect().execute(stmt)
-            print(
-                f"The person with entity_id {person.entity_id} added new new picture. picture_id: {picture_id}")
-        except:
-            print(
-                f"The new picture(picture_id: {picture_id}) of the person with entity_id {person.entity_id} could not be added to the log table.")
 
 
 def insert_picture_info_to_change_log(picture_id, entity_id):
@@ -718,18 +706,17 @@ def insert_updated_hair_info_change_log(person, person_db):
             f"The person with entity_id {person.entity_id} could not be update hair: {person_db.hair} to {person.hair}")
 
 
-def insert_deleted_picture_info_change_log(picture_id, entity_id):
+def insert_deleted_picture_info_change_log(picture_id, entity_id, bs64):
     """This is a function that adds the deleted image information to the log table."""
-    stmt = (insert(Base.metadata.tables[ChangeLogInformation.__tablename__]).values(person_id=get_person_db_id_from_entity_id(entity_id
-                                                                                                                              ), modification_in_database=f'The person with entity_id {entity_id} deleted the picture. unique_picture_id: {picture_id}', modification_date=datetime.datetime.now()))
+    stmt = (insert(Base.metadata.tables[ChangeLogInformation.__tablename__]).values(person_id=get_person_db_id_from_entity_id(entity_id), modification_in_database=f"The person with entity_id {entity_id} deleted the picture. unique_picture_id: {picture_id}. base64: {bs64}", modification_date=datetime.datetime.now()))
     try:
         engine.connect().execute(stmt)
         print(
-            f"The person with entity_id {entity_id} deleted the picture: {picture_id}")
+            f"The person with entity_id {entity_id} deleted the picture: {picture_id}.")
 
     except:
         print(
-            f"The person with entity_id {entity_id} could not be delete the picture: {picture_id}")
+            f"The person with entity_id {entity_id} could not be insert to change log table the picture: {picture_id}")
 
 
 def insert_deleted_arrest_warrant_info_change_log(issuing_country, charge, entity_id):
