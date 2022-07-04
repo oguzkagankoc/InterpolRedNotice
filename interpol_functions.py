@@ -1,6 +1,6 @@
 import os
 import base64
-from sqlalchemy import insert, update, delete, and_
+from sqlalchemy import false, insert, update, delete, and_
 from datetime import datetime
 import datetime
 import requests
@@ -78,12 +78,12 @@ def get_total_person_db_count():
 
 def get_active_person_db_entities():
     """This is a function that returns the list of active contacts in the database."""
-    return [a.entity_id for a in session.query(PersonalInformation).filter_by(is_active=True).all()]
+    return [a[0] for a in session.query(PersonalInformation.entity_id).filter_by(is_active=True).all()]
 
 
 def get_inactive_person_db_entities():
     """This is a function that returns the list of active contacts in the database."""
-    return [a.entity_id for a in session.query(PersonalInformation).filter_by(is_active=False).all()]
+    return [a[0] for a in session.query(PersonalInformation.entity_id).filter_by(is_active=False).all()]
 
 
 def get_person_db_personal_information(entity_id):
