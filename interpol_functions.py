@@ -788,7 +788,7 @@ def set_inactive_person(entity_id):
         Base.metadata.tables[PersonalInformation.__tablename__].c.entity_id == entity_id).values(is_active=False))
     try:
         engine.connect().execute(stmt)
-        insert_inactive_person_change_log_table(i)
+        insert_inactive_person_change_log_table(entity_id)
     except:
         print(
             f"People with entity_id {entity_id} could not be inactivated.")
