@@ -220,7 +220,7 @@ class ChangeLogInformation(Base):
     log_id = Column('log_id', Integer, primary_key=True)
     person_id = Column('person_id', Integer, ForeignKey(
         "personal_informations.person_id"))
-    modification_in_database = Column('modification_in_database', String(1000))
+    modification_in_database = Column('modification_in_database', Text)
     modification_date = Column('modification_date', DateTime)
     personal_informations = relationship(
         "PersonalInformation", backref="change_log", lazy=True)
