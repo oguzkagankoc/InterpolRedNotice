@@ -146,7 +146,7 @@ def insert_language_informations(person_db_id, person):
             person_id=person_db_id, language_spoken=i))
         try:
             engine.connect().execute(stmt)
-            insert_languages_info_to_change_log(person)
+            insert_language_info_to_change_log(i, person.entity_id)
 
         except:
             print(
@@ -173,8 +173,7 @@ def insert_nationality_informations(person_db_id, person):
             person_id=person_db_id, nationality=i))
         try:
             engine.connect().execute(stmt)
-            insert_nationalities_info_to_change_log(
-                person)
+            insert_nationality_info_to_change_log(i, person.entity_id)
         except:
             print(
                 f"The personal nationality informations of the person with the person_id: {person_db_id} could not be insert the database.")
@@ -200,8 +199,7 @@ def insert_arrest_warrants(person_db_id, person):
             person_id=person_db_id, issuing_country=i['issuing_country_id'], charge=i['charge'], charge_translation=i['charge_translation']))
         try:
             engine.connect().execute(stmt)
-            insert_arrest_warrants_info_to_change_log(
-                person)
+            insert_arrest_warrant_info_to_change_log(i['issuing_country_id'], i['charge'], i['charge_translation'], person.entity_id)
         except:
             print(
                 f"The personal arrest warrants informations of the person with the person_id: {person_db_id} could not be insert the database.")
@@ -479,20 +477,6 @@ def insert_language_info_to_change_log(language, entity_id):
             f"The new language({language}) of the person could not be added to the log table.")
 
 
-def insert_languages_info_to_change_log(person):
-    """This is a function that adds this change to the log table when a new languages are inserted."""
-    for language in person.language:
-        stmt = (insert(Base.metadata.tables[ChangeLogInformation.__tablename__]).values(person_id=get_person_db_id_from_entity_id(
-            person.entity_id), modification_in_database=f'The person with entity_id {person.entity_id} added new language: {language}', modification_date=datetime.datetime.now()))
-        try:
-            engine.connect().execute(stmt)
-            print(
-                f"The person with entity_id {person.entity_id} added new language: {language}")
-        except:
-            print(
-                f"The new language({language}) of the person could not be added to the log table.")
-
-
 def insert_nationality_info_to_change_log(nationality, entity_id):
     """This is a function that adds this change to the log table when a new language is inserted."""
     stmt = (
@@ -505,19 +489,6 @@ def insert_nationality_info_to_change_log(nationality, entity_id):
         print(
             f"The new nationality({nationality}) of the person could not be added to the log table.")
 
-
-def insert_nationalities_info_to_change_log(person):
-    """This is a function that adds this change to the log table when a new nationalities are inserted."""
-    for nationality in person.nationality:
-        stmt = (insert(Base.metadata.tables[ChangeLogInformation.__tablename__]).values(person_id=get_person_db_id_from_entity_id(
-            person.entity_id), modification_in_database=f'The person with entity_id {person.entity_id} added new nationality: {nationality}', modification_date=datetime.datetime.now()))
-        try:
-            engine.connect().execute(stmt)
-            print(
-                f"The person with entity_id {person.entity_id} added new nationality: {nationality}")
-        except:
-            print(
-                f"The new nationality({nationality}) of the person could not be added to the log table.")
 
 
 def insert_arrest_warrant_info_to_change_log(issuing_country, charge, charge_translation, entity_id):
